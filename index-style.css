@@ -1,0 +1,28 @@
+* {
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 90vw;
+    max-height: 100%;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.customBox {
+    background-color: black;
+    color: white;
+    padding: 5px;
+}
+
+.customHeader {
+    background-color: black;
+    color: red;
+}
+
+.customBody {
+    padding: 5px;
+}
