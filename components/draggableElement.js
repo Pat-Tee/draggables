@@ -5,7 +5,11 @@ Draggable elements are applied when initDrag() is called, such as onload() or at
 Arbitrary elements can be made draggable by having one outer <div> applying the dragDiv class, and one inner <div> applying the dragClick class.
 box, header, and boxBody classes are included here as basic placeholder stylings
 */
-document.getElementsByTagName("head")[0].outerHTML += "<link rel='stylesheet' type='text/css' href="+"'./components/draggableElement.css'/>"+"\n";
+
+// I just spent waaay too much time chasing a bug that was adding a second body tag, one for the hardcoded HTML and one for the javascript HTML
+// The issue was I had document.getElementsByTagName("head")[0].outerHTML for my stylesheet injection. Now I have it correct.
+
+document.querySelector("head").innerHTML += "<link rel='stylesheet' type='text/css' href="+"'./components/draggableElement.css'/>"+"\n";
 
 //===================== BEGIN CLASS DEFINITIONS
 const controlWindowHTML = `<div id="controlWindow" style="z-index: 9;" class="dragDiv box">
@@ -30,15 +34,14 @@ const printHTML = () => {console.log("printHTML:\n"); console.log(document.docum
 
 class dragWindow {
 
-    constructor(_title="Window", _html="") {
-
+    constructor(_title="Window", _html='' ) {
         this.box = {};
         this.title = _title;
         this.element = null;
-
-        if (!_html)
+        if (_html)
+            this.html = _html;
+        else
             this.html = defaultWindowHTML;
-        else this.html = _html;
     }
 }
 
@@ -51,7 +54,7 @@ class dragWindows {
         this.window = [];
     }
 
-    newWindow(_title="", _html="", reload=false) {
+    newWindow(_title="", _html="") {
         this.window.push( new dragWindow(_title, _html) );
         this.count++;
         this.indexCount++;
@@ -59,15 +62,13 @@ class dragWindows {
         return this.indexCount;
     }
 
-    addWindow(_title="", _html="", reload=false) {
+    addWindow(_title="", _html="") {
         this.window.push( new dragWindow(_title, _html) );
         this.count++;
         console.log("window "+(this.indexCount)+" added to windows class");
-        return this.indexCount;
     }
 
     removeWindow(index) {
-
         let newList = [];
         for (let item in this.window) {
             if (item !== index) {
@@ -80,39 +81,29 @@ class dragWindows {
     }
 };
 //============ END CLASS DEFINITIONS
-
 //============ BEGIN GLOBAL DECLARATIONS
 var windows = new dragWindows;
 //============ END GLOBAL DECLARATIONS
-
 //============ BEGIN FUNCTION DEFINITIONS
-
 function initDrag() { // This function should run once, always after the HTML has loaded, and then runDrag() will handle updating and processing
-
     loadPage();
-
     let draggables = document.getElementsByClassName("dragClick");
-    // let tmpIndexCount = windows.indexCount;
     for (let i=0; i<draggables.length; i++) {
         let title = draggables[i].parentElement.getAttribute('id');
         title == null ? 
         draggables[i].parentElement.setAttribute('id', "Window"+i) : console.log("window id: "+title);
-        
         windows.addWindow(title!=null ? title : "PLACEHOLDER", "", true);
     }
     runDrag();
 }
 
 function runDrag() {
-
     if (!windows.controlWindow) {
         windows.controlWindow = true;
         windows.addWindow("Control",controlWindowHTML, 0, 0);
         document.body.innerHTML += controlWindowHTML;
     }
-
     let draggables = document.getElementsByClassName("dragClick");
-
     if (draggables[0]) {
         for (let i=0; i < draggables.length; i++) {
             let ele = windows.window[i];
@@ -130,20 +121,16 @@ function runDrag() {
 function checkCollision(ele1, ele2) {
     let tlCollision = false, brCollision = false;
     let ele1Box = ele1.parentElement.getBoundingClientRect(), ele2Box = ele2.parentElement.getBoundingClientRect();
-
     if ( (ele1Box.x > ele2Box.x && ele1Box.x < ele2Box.right) && (ele1Box.y > ele2Box.y && ele1Box.y < ele2Box.bottom) ) tlCollision = true; 
     if ( (ele1Box.right > ele2Box.x && ele1Box.right < ele2Box.right) && (ele1Box.bottom > ele2Box.y && ele1Box.bottom < ele2Box.bottom) ) brCollision = true;
-
     if (tlCollision || brCollision) {
         let newY = ele2Box.bottom+1;
         let newX = ele2Box.x;
         ele1.parentElement.style.left = newX+"px";
         ele1.parentElement.style.top = newY+"px";
         console.log("collision detected")
-
         return true;
     }
-
     return false;
 };
 
@@ -160,29 +147,22 @@ function newDragElement() {
 
 function removeDragElement(e) {
     e = e || window.event;
-
     let windowElem = e.target.parentElement.parentElement;
     let index = windowElem.id;
-
     document.getElementById(index).remove();
     // document.getElementById(index).parentNode.removeChild(windowElem);
-
     index = +index.replace("window", "");
     console.log(index)
     windows.removeWindow(index);
     runDrag();
-
 }
-function loadPage() {
-    var savedPage = localStorage.getItem("mainBody");
-    var savedWindows = localStorage.getItem("savedWindows");
 
+function loadPage() {
+    var savedPage = localStorage.getItem("body");
+    var savedWindows = localStorage.getItem("savedWindows");
     if (savedPage) {
-        // document.body.innerHTML = "";
-        let main = document.getElementsByTagName('body');
-        main[0].innerHTML = savedPage;
-        // document.body.innerHTML = savedPage;
-        // document.documentElement = savedPage;
+        console.log("loading saved page: "+ savedPage)
+        document.body.outerHTML = savedPage;
     }
     if (savedWindows) {
         let windowsData = JSON.parse(savedWindows);
@@ -194,17 +174,15 @@ function loadPage() {
 }
 
 function savePage() {
-    localStorage.setItem("mainBody", document.body.innerHTML );
-    // localStorage.setItem("mainBody", document.documentElement);
+    localStorage.setItem("body", document.body.innerHTML );
     localStorage.setItem("savedWindows", JSON.stringify(windows) );
 }
 
 function resetPage() {
-    localStorage.removeItem("mainBody");
+    localStorage.removeItem("body");
     localStorage.removeItem("savedWindows");
     window.location.reload();
 }
-
 /*-------------------
 //Basic Drag function
 -------------------*/
@@ -217,8 +195,6 @@ function dragElement(ele) {
     function dragMouseDown(e) {
         e = e || window.event;
         e.preventDefault();
-
-        
         ele.parentElement.style.zIndex = 2;
         console.log(ele.parentElement.style.zIndex)
         pos3 = e.clientX;
@@ -243,7 +219,5 @@ function dragElement(ele) {
         document.onmousemove = null;
         runDrag();
     }
-
 }
-
 // basic drag function taken from: https://www.tutorialspoint.com/how-to-create-a-draggable-html-element-with-javascript-and-css
