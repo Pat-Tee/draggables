@@ -16,11 +16,15 @@
     background-color: black;
     color: white;
     padding: 5px;
+    border-radius: 15px;
 }
 
 .customHeader {
     background-color: black;
     color: red;
+    display: flex;
+    flex-direction: row;
+    margin: 0 auto;
 }
 
 .customBody {

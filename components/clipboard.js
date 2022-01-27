@@ -19,7 +19,7 @@ const controlWindowHTML = `<div id="controlWindow" style="z-index: 9;" class="dr
                                     <button onclick="newDragElement()">New Window</button>
                                     <button onclick="resetPage()">Reset</button>
                                     <button onclick="savePage()">Save</button>
-                                    <button onclick="loadPage()">Load</button>
+                                    <button onclick="printHTML()">Log Document</button>
                                 </div>
                             </div>`;
 
@@ -30,9 +30,12 @@ const defaultWindowHTML = `<div id="defaultWindow" class="dragDiv box">
                                 </div>
                             </div>`;
 
+const printHTML = () => {console.log("printHTML:\n"); console.log(document.documentElement);}
+
 class dragWindow {
 
-    constructor(_title="x", _html='' ) {
+    constructor(_title="Window", _html='' ) {
+        this.box = {};
         this.title = _title;
         this.element = null;
         if (_html)
@@ -45,8 +48,8 @@ class dragWindow {
 class dragWindows {
 
     constructor() {
-        this.controlWindow = false;
         this.count = 0;
+        this.controlWindow = false;
         this.indexCount = 0;
         this.window = [];
     }
@@ -55,26 +58,26 @@ class dragWindows {
         this.window.push( new dragWindow(_title, _html) );
         this.count++;
         this.indexCount++;
-        console.log("new window "+(this.indexCount)+" added to windows class");
+        console.log("window "+(this.indexCount)+" added to windows class");
         return this.indexCount;
     }
 
     addWindow(_title="", _html="") {
         this.window.push( new dragWindow(_title, _html) );
         this.count++;
-        console.log("add window "+(this.indexCount)+" to windows class");
+        console.log("window "+(this.indexCount)+" added to windows class");
     }
 
     removeWindow(index) {
         let newList = [];
-        for (let each in this.window) {
-            if (each !== index) {
-                newList.push(each);
+        for (let item in this.window) {
+            if (item !== index) {
+                newList.push(item);
             }
         }
-        this.window = newList;
         if (this.count > 0)
             this.count--;
+        // console.log(document.getElementById("window"+index));
     }
 };
 //============ END CLASS DEFINITIONS
@@ -86,14 +89,10 @@ function initDrag() { // This function should run once, always after the HTML ha
     loadPage();
     let draggables = document.getElementsByClassName("dragClick");
     for (let i=0; i<draggables.length; i++) {
-        draggables[i].parentElement.id = "Window"+windows.indexCount;
         let title = draggables[i].parentElement.getAttribute('id');
-        // newDragElement(title);
-        windows.addWindow(title)
-        // title == null ? 
-        // draggables[i].parentElement.setAttribute('id', "Window"+i) : console.log("window id: "+title);
-        // windows.addWindow(title!=null ? title : "PLACEHOLDER", "");
-        console.log(title+" added")
+        title == null ? 
+        draggables[i].parentElement.setAttribute('id', "Window"+i) : console.log("window id: "+title);
+        windows.addWindow(title!=null ? title : "PLACEHOLDER", "", true);
     }
     runDrag();
 }
@@ -101,24 +100,22 @@ function initDrag() { // This function should run once, always after the HTML ha
 function runDrag() {
     if (!windows.controlWindow) {
         windows.controlWindow = true;
-        windows.addWindow("Control", controlWindowHTML);
+        windows.addWindow("Control",controlWindowHTML, 0, 0);
         document.body.innerHTML += controlWindowHTML;
     }
     let draggables = document.getElementsByClassName("dragClick");
-    if (draggables) {
+    if (draggables[0]) {
         for (let i=0; i < draggables.length; i++) {
-            // let ele = windows.window[i];
+            let ele = windows.window[i];
             dragElement(draggables[i]);
-            // windows.window[i].element = draggables[i];
-            // ele.box = draggables[i].getBoundingClientRect();
+            ele.element = draggables[i];
+            ele.box = draggables[i].getBoundingClientRect();
             for (let j=i+1; j< draggables.length; j++)  {
-                checkCollision(draggables[i], draggables[j]);
+                checkCollision(ele.element, draggables[j]);
             }
         }
-    } else
-        console.log("No draggable windows");
-    let ele = document.getElementById("windowCount");
-    ele? ele.innerHTML = `Number of windows: ${windows.count}` : console.log('No control window')
+    } else console.log("No draggable windows.");
+    document.getElementById("windowCount").innerHTML = `Number of windows: ${windows.count}`;
 }
 
 function checkCollision(ele1, ele2) {
@@ -142,10 +139,9 @@ function newDragElement() {
     let index = windows.window.length-1;
     windows.window[index].html = windows.window[index].html.replace("TITLE", `New Window ${windows.indexCount}`);
     document.body.innerHTML += windows.window[index].html;
-    let ele = document.getElementById("defaultWindow");
+    let newId = document.getElementById("defaultWindow");
     // newId.style.zIndex = windows.count+1; // need to prioritize z value, but this way will theoretically hit an integer upper value limit
-    ele ? ele.id = "window"+windows.indexCount : console.log("could not locate defaultWindow id from newDragElement()")
-    windows.window.element = ele;
+    newId ? newId.id = "window"+windows.indexCount : console.log("could not locate defaultWindow id from newDragElement()")
     runDrag();
 }
 
@@ -153,35 +149,28 @@ function removeDragElement(e) {
     e = e || window.event;
     let windowElem = e.target.parentElement.parentElement;
     let index = windowElem.id;
-    windowElem.remove();
+    document.getElementById(index).remove();
+    // document.getElementById(index).parentNode.removeChild(windowElem);
     index = +index.replace("window", "");
-    // console.log(index)
+    console.log(index)
     windows.removeWindow(index);
     runDrag();
 }
 
 function loadPage() {
-
     var savedPage = localStorage.getItem("body");
     var savedWindows = localStorage.getItem("savedWindows");
-
     if (savedPage) {
-        console.log("loading saved page: "+savedPage)
-        document.body.innerHTML = savedPage;
+        console.log("loading saved page: "+ savedPage)
+        document.body.outerHTML = savedPage;
     }
     if (savedWindows) {
         let windowsData = JSON.parse(savedWindows);
         for (each in windowsData) {
             windows[each] = windowsData[each];
-            console.log(windows[each])
         }
-        windows.count = windows.window.length;
+        windows.count = 0;
     }
-    console.log("windows loaded: "+ windows.count);
-    if (windows.count > 0)
-        return true;
-    // runDrag();
-
 }
 
 function savePage() {
@@ -190,9 +179,8 @@ function savePage() {
 }
 
 function resetPage() {
-    // localStorage.removeItem("body");
-    // localStorage.removeItem("savedWindows");
-    localStorage.clear();
+    localStorage.removeItem("body");
+    localStorage.removeItem("savedWindows");
     window.location.reload();
 }
 /*-------------------
@@ -208,7 +196,7 @@ function dragElement(ele) {
         e = e || window.event;
         e.preventDefault();
         ele.parentElement.style.zIndex = 2;
-        // console.log(ele.parentElement.style.zIndex)
+        console.log(ele.parentElement.style.zIndex)
         pos3 = e.clientX;
         pos4 = e.clientY;
         document.onmouseup = closeDragElement;

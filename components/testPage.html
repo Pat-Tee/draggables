@@ -8,13 +8,14 @@
     <title>draggable elements</title>
 </head>
 
-<body onload="initDraggables()">
+
+<body onload = "draggables().init();">
 <div id="main" class="container">
 
     <div class="dragDiv customBox">
         <div class="dragClick customHeader">
             <h3>Custom Window</h3>
-            <button name="removeDraggable">x</button>
+            <button dragId="remove">x</button>
         </div>
         <div class="customBody">
             Hello world!
@@ -22,13 +23,6 @@
     </div>
 
 </div>
-<script src="./draggables.js" async></script>
 </body>
-
-
-
+<script src="./draggables.js"></script>
 </html>
-
-
-<!--------------------------------------->
-

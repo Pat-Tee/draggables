@@ -26,12 +26,3 @@
 .boxBody {
     padding: 10px;
 }
-
-.header #controlWindow {
-    background-color: lightyellow;
-}
-
-.box #controlWindow {
-    background-color: darkgrey;
-
-}

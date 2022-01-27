@@ -4,28 +4,25 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="index-style.css"/>
+    <link rel="stylesheet" type="text/css" href="./index-style.css"/>
     <title>draggable elements</title>
 </head>
-<body onload="initDrag();">
-<!-- <body> -->
-    <div id="main" class="container">
 
-        <div class="dragDiv customBox">
-            <div class="dragClick customHeader">
-                <h3>Custom Window</h3>
-                <button onclick="removeDragElement()">x</button>
-            </div>
-            <div class="customBody">
-                Hello world!
-            </div>
+
+<body onload = "draggables().init();">
+<div id="main" class="container">
+
+    <div class="dragDiv customBox">
+        <div class="dragClick customHeader">
+            <h3>Custom Window</h3>
+            <button dragId="remove">x</button>
         </div>
-
+        <div class="customBody">
+            Hello world!
+        </div>
     </div>
-    <button onclick="resetPage()">reset</button>
+
+</div>
 </body>
-
-<script src="./components/draggableElement.js"></script>
+<script src="./components/draggables.js"></script>
 </html>
-
-<!-- <script src="index-script.js"></script> -->
